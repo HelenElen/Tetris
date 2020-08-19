@@ -1,5 +1,23 @@
+@import url('https://fonts.googleapis.com/css?family=Dosis');
+*{
+    box-sizing: border-box;
+	font-family: 'Dosis', sans-serif;
+	
+}
+:root{
+
+	--bgr: rgb(64, 64, 64);
+}
+
+
+body{
+    margin: 0;
+    left: 45%;
+    position: absolute;
+}
 .container {
     display: flex;
+
 }
 
 .grid {
@@ -7,12 +25,15 @@
     height: 400px;
     display: flex;
     flex-wrap: wrap;
-    background-color: yellow;
+    background-color:rgb(64, 64, 64);
+
 }
 
 .grid div {
     height: 20px;
     width: 20px ;
+    border: black solid 1px;
+    
 }
 
 .tetromino {
@@ -25,10 +46,34 @@
     height: 80px;
     display: flex;
     flex-wrap: wrap;
-    background-color: yellow;
+    background-color: rgb(64, 64, 64);
+    
 }
 
 .mini-grid div {
     height: 20px;
     width: 20px;
+    border: black solid 1px;
+}
+
+button{
+    margin: 5px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* position: absolute; */
+    cursor: pointer;
+    color: white;
+    background: var(--bgr);
+    height: calc(1 * var(--height));
+    width: calc(2 * 0.866 * var(--height));
+    box-shadow: 0.5em 0.5em 0.5em lightgrey;
+    transition: box-shadow ease 0.2s;
+    z-index: 9;
+}
+
+.taken{
+    background-color:blue/* rgb(255, 0, 0)*/;
+    text-align: center;
+    color: white;
 }

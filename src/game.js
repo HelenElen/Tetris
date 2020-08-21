@@ -1,8 +1,18 @@
 export default class Game {
-  score = 0;
-  lines = 0;
-  level = 0;
-  playfield = this.createPlayfield();
+  static points = {
+    "1": 40,
+    "2": 100,
+    "3": 300,
+    "4": 1200,
+  };
+
+  constructor() {
+    this.reset();
+  }
+
+  get level() {
+    return Math.floor(this.lines * 0.1);
+  }
 
   // получение состояния поля
   getState() {
@@ -24,9 +34,25 @@ export default class Game {
       }
     }
     return {
+      score: this.score,
+      level: this.level,
+      lines: this.lines,
+      nextPiece: this.nextPiece,
       playfield,
+      isGameOver: this.topOut,
     };
   }
+
+  reset() {
+    this.score = 0;
+    this.lines = 0;
+    this.topOut = false;
+
+    this.playfield = this.createPlayfield();
+    this.activePiece = this.createPiece(); //представление фигуры
+    this.nextPiece = this.createPiece();
+  }
+
   // копия игрового поля
   createPlayfield() {
     const playfield = [];
@@ -39,19 +65,71 @@ export default class Game {
     return playfield;
   }
 
-  //представление фигуры
-  activePiece = {
-    x: 0,
-    y: 0,
-    // get blocks() {
-    //   return this.rotations[this.rotationIndex];
-    // },
-    blocks: [
-      [0, 1, 0],
-      [1, 1, 1],
-      [0, 0, 0],
-    ],
-  };
+  createPiece() {
+    const index = Math.floor(Math.random() * 7);
+    const type = "IJLOSTZ"[index];
+    const piece = {};
+
+    switch (type) {
+      case "I":
+        piece.blocks = [
+          [0, 0, 0, 0],
+          [1, 1, 1, 1],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+        ];
+        break;
+      case "J":
+        piece.blocks = [
+          [0, 0, 0],
+          [2, 2, 2],
+          [0, 0, 2],
+        ];
+        break;
+      case "L":
+        piece.blocks = [
+          [0, 0, 0],
+          [3, 3, 3],
+          [3, 0, 0],
+        ];
+        break;
+      case "O":
+        piece.blocks = [
+          [0, 0, 0, 0],
+          [0, 4, 4, 0],
+          [0, 4, 4, 0],
+          [0, 0, 0, 0],
+        ];
+        break;
+      case "S":
+        piece.blocks = [
+          [0, 0, 0],
+          [0, 5, 5],
+          [5, 5, 0],
+        ];
+        break;
+      case "T":
+        piece.blocks = [
+          [0, 0, 0],
+          [6, 6, 6],
+          [0, 6, 0],
+        ];
+        break;
+      case "Z":
+        piece.blocks = [
+          [0, 0, 0],
+          [7, 7, 0],
+          [0, 7, 7],
+        ];
+        break;
+      default:
+        throw new Error("Неизвестный тип фигуры");
+    }
+
+    piece.x = Math.floor((10 - piece.blocks[0].length) / 2);
+    piece.y = -1;
+    return piece;
+  }
 
   //движение влево
   movePieceLeft() {
@@ -72,11 +150,19 @@ export default class Game {
 
   //движение вниз
   movePieceDown() {
+    if (this.topOut) return;
     this.activePiece.y += 1;
 
     if (this.hasCollision()) {
       this.activePiece.y -= 1;
       this.lockPiece();
+      const cleardlines = this.clearLines();
+      this.updateScore(cleardlines);
+      this.updatePieces();
+    }
+
+    if (this.hasCollision()) {
+      this.topOut = true;
     }
   }
 
@@ -131,5 +217,46 @@ export default class Game {
         }
       }
     }
+  }
+
+  clearLines() {
+    let lines = [];
+    const rows = 20;
+    const columns = 10;
+    for (let y = rows - 1; y >= 0; y--) {
+      let numberOfBlocks = 0;
+
+      for (let x = 0; x < columns; x++) {
+        if (this.playfield[y][x]) {
+          numberOfBlocks += 1;
+        }
+      }
+
+      if (numberOfBlocks === 0) {
+        break;
+      } else if (numberOfBlocks < columns) {
+        continue;
+      } else if (numberOfBlocks === columns) {
+        lines.unshift(y);
+      }
+    }
+
+    for (let index of lines) {
+      this.playfield.splice(index, 1);
+      this.playfield.unshift(new Array(columns).fill(0));
+    }
+    return lines.length;
+  }
+
+  updateScore(cleardLines) {
+    if (cleardLines) {
+      this.score += Game.points[cleardLines] * (this.level + 1);
+      this.lines += cleardLines;
+    }
+  }
+
+  updatePieces() {
+    this.activePiece = this.nextPiece;
+    this.nextPiece = this.createPiece();
   }
 }
